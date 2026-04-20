@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Solomon</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="overlay">
+        <div id="solomon-name">SOLOMON</div>
+        <div id="status-line"></div>
+        <div id="ring-tooltip">
+            <div class="title"></div>
+            <div class="subtitle"></div>
+        </div>
+        
+        <div id="chat-log"></div>
+        
+        <div id="input-bar">
+            <input type="text" id="cmd-input" placeholder="Speak your intent..." autocomplete="off">
+            <button id="send-btn">⟶</button>
+        </div>
+        
+        <button id="view-toggle">◎</button>
+        
+        <div id="debug-panel">
+            <div class="debug-title">◈ RING DEBUG</div>
+            <div class="debug-rings" id="debug-rings"></div>
+            <div class="debug-divider"></div>
+            <div class="debug-specials" id="debug-specials"></div>
+            <div class="debug-readout" id="debug-readout">Active rings: 0 / 10</div>
+        </div>
+    </div>
+
+    <!-- Three.js and add-ons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Main Entry Point -->
+    <script type="module" src="./main.js"></script>
+</body>
+</html>
