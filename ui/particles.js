@@ -14,17 +14,17 @@ export function setupSceneEnvironment(sceneGroup) {
         const r = 400 + Math.random() * 200;
         const theta = Math.random() * 2 * Math.PI;
         const phi = Math.acos(Math.random() * 2 - 1);
-        
-        pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-        pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-        pos[i*3+2] = r * Math.cos(phi);
-        
+
+        pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        pos[i * 3 + 2] = r * Math.cos(phi);
+
         sizes[i] = 0.3 + Math.random() * 1.5;
     }
-    
+
     starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     starGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    
+
     const starMat = new THREE.PointsMaterial({
         color: 0xcccccc,
         size: 1.0,
@@ -32,28 +32,28 @@ export function setupSceneEnvironment(sceneGroup) {
         transparent: true,
         opacity: 0.8
     });
-    
+
     stars = new THREE.Points(starGeo, starMat);
     sceneGroup.add(stars);
 
     // 2. Nebula Clouds
     nebulaGrp = new THREE.Group();
     const pGeo = new THREE.PlaneGeometry(300, 300);
-    
+
     function createNebulaTex() {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
-        const grad = ctx.createRadialGradient(256,256,0, 256,256,256);
+        const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
         grad.addColorStop(0, 'rgba(26, 10, 46, 1)');
         grad.addColorStop(1, 'rgba(26, 10, 46, 0)');
         ctx.fillStyle = grad;
-        ctx.fillRect(0,0,512,512);
+        ctx.fillRect(0, 0, 512, 512);
         return new THREE.CanvasTexture(c);
     }
     const nebTex = createNebulaTex();
 
-    for(let i=0; i<4; i++) {
+    for (let i = 0; i < 4; i++) {
         const pMat = new THREE.MeshBasicMaterial({
             map: nebTex,
             transparent: true,
@@ -62,10 +62,10 @@ export function setupSceneEnvironment(sceneGroup) {
             blending: THREE.AdditiveBlending
         });
         const p = new THREE.Mesh(pGeo, pMat);
-        p.position.set( (Math.random()-0.5)*200, (Math.random()-0.5)*100, -100 - Math.random()*200 );
-        p.userData = { 
+        p.position.set((Math.random() - 0.5) * 200, (Math.random() - 0.5) * 100, -100 - Math.random() * 200);
+        p.userData = {
             baseX: p.position.x, baseY: p.position.y,
-            rx: Math.random()*2, ry: Math.random()*2, speed: 0.1+Math.random()*0.2 
+            rx: Math.random() * 2, ry: Math.random() * 2, speed: 0.1 + Math.random() * 0.2
         };
         nebulaGrp.add(p);
     }
@@ -75,24 +75,24 @@ export function setupSceneEnvironment(sceneGroup) {
     const dustGeometry = new THREE.BoxGeometry(0.15, 0.15, 0.15);
     const dustMat = new THREE.MeshBasicMaterial({ color: 0x998877, transparent: true, opacity: 0.4 });
     dustMesh = new THREE.InstancedMesh(dustGeometry, dustMat, dustCount);
-    
+
     const dummy = new THREE.Object3D();
-    for(let i=0; i<dustCount; i++) {
+    for (let i = 0; i < dustCount; i++) {
         const r = Math.random() * 200;
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(Math.random() * 2 - 1);
         const x = r * Math.sin(phi) * Math.cos(theta);
         const y = r * Math.sin(phi) * Math.sin(theta);
         const z = r * Math.cos(phi);
-        
+
         dummy.position.set(x, y, z);
-        dummy.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+        dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
         dummy.updateMatrix();
         dustMesh.setMatrixAt(i, dummy.matrix);
-        
+
         dustParticles.push({
-            position: new THREE.Vector3(x,y,z),
-            velocity: new THREE.Vector3((Math.random()-0.5)*0.05, (Math.random()-0.5)*0.05, (Math.random()-0.5)*0.05)
+            position: new THREE.Vector3(x, y, z),
+            velocity: new THREE.Vector3((Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.05)
         });
     }
     sceneGroup.add(dustMesh);
@@ -107,22 +107,22 @@ export function setupSceneEnvironment(sceneGroup) {
 }
 
 export function updateEnvironment(elapsed, rings) {
-    if(stars) {
+    if (stars) {
         stars.rotation.y += 0.00008;
         stars.rotation.x += 0.00003;
     }
-    
-    if(nebulaGrp) {
+
+    if (nebulaGrp) {
         nebulaGrp.children.forEach(n => {
             n.position.x = n.userData.baseX + Math.sin(elapsed * n.userData.speed) * 30;
             n.position.y = n.userData.baseY + Math.cos(elapsed * n.userData.speed) * 20;
         });
     }
 
-    if(dustMesh) {
-        for(let i=0; i<dustCount; i++) {
+    if (dustMesh) {
+        for (let i = 0; i < dustCount; i++) {
             let p = dustParticles[i];
-            
+
             let attracted = false;
             if (rings) {
                 for (const r of rings) {
@@ -138,26 +138,26 @@ export function updateEnvironment(elapsed, rings) {
             }
 
             p.position.add(p.velocity);
-            
-            if(attracted) {
+
+            if (attracted) {
                 p.velocity.multiplyScalar(0.95);
             } else {
-                p.velocity.lerp(new THREE.Vector3((Math.random()-0.5)*0.05, (Math.random()-0.5)*0.05, (Math.random()-0.5)*0.05), 0.01);
+                p.velocity.lerp(new THREE.Vector3((Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.05), 0.01);
             }
-            
-            if(p.position.length() > 250) {
+
+            if (p.position.length() > 250) {
                 p.position.setScalar(0);
-                p.position.x = (Math.random()-0.5)*100;
+                p.position.x = (Math.random() - 0.5) * 100;
             }
-            
+
             dummy2.position.copy(p.position);
             dummy2.updateMatrix();
             dustMesh.setMatrixAt(i, dummy2.matrix);
         }
         dustMesh.instanceMatrix.needsUpdate = true;
     }
-    
-    if(groundGlow) {
+
+    if (groundGlow) {
         groundGlow.material.opacity = 0.05 + Math.sin(elapsed) * 0.07;
     }
 }

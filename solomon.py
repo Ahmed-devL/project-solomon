@@ -1,14 +1,12 @@
-from flask import Flask, render_template
+from flask import Flask, send_from_directory
 
-# Solomon's Waiter: Serving the UI from the 'ui' folder
-app = Flask(__name__, template_folder='ui', static_folder='ui')
+# Tell Flask that the 'ui' folder is where all the static files live
+app = Flask(__name__, static_folder='ui', static_url_path='')
 
+# Route the main URL to the index.html inside the ui folder
 @app.route('/')
 def index():
-    # This route will serve the index.html that Antigravity generates
-    return render_template('index.html')
+    return send_from_directory('ui', 'index.html')
 
 if __name__ == '__main__':
-    # Solomon listens on Port 5000 for your commands
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    app.run(debug=True, port=5000)
