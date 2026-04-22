@@ -41,7 +41,6 @@ const outerShellMat = new THREE.MeshPhysicalMaterial({
   metalness: 1.0,
   roughness: 0.08,
   transmission: 0.3,
-  thickness: 4.0,
   clearcoat: 1.0,
   envMapIntensity: 2.5,
   opacity: 0.45,
