@@ -240,13 +240,13 @@
   var hcCtx = hcCanvas.getContext('2d');
   hcCtx.clearRect(0, 0, 32, 32);
   hcCtx.strokeStyle = 'white';
-  hcCtx.lineWidth = 4;
+  hcCtx.lineWidth = 2;
   hcCtx.beginPath();
   hcCtx.arc(16, 16, 10, 0, Math.PI * 2);
   hcCtx.stroke();
   var hollowCircleTexture = new THREE.CanvasTexture(hcCanvas);
 
-  var SHARD_N = 40;
+  var SHARD_N = 80;
   var shardPos  = new Float32Array(SHARD_N * 3);
   var shardCols = new Float32Array(SHARD_N * 3);
   var shardData = [];
@@ -262,16 +262,15 @@
       sinOff: Math.random()*Math.PI*2, sinFreq: 0.005+Math.random()*0.01
     });
 
-    var op = 0.18 + Math.random() * 0.27;
-    var col = particleColor(op);
-    shardCols[i*3] = col[0]; shardCols[i*3+1] = col[1]; shardCols[i*3+2] = col[2];
+    var op = 0.1 + Math.random() * 0.2;
+    shardCols[i*3] = op; shardCols[i*3+1] = op; shardCols[i*3+2] = op;
   }
 
   var shardGeo = new THREE.BufferGeometry();
   shardGeo.setAttribute('position', new THREE.BufferAttribute(shardPos, 3));
   shardGeo.setAttribute('color',    new THREE.BufferAttribute(shardCols, 3));
   var shardMat = new THREE.PointsMaterial({
-    map: hollowCircleTexture, vertexColors: true, size: 35, sizeAttenuation: true,
+    map: hollowCircleTexture, vertexColors: true, size: 12, sizeAttenuation: true,
     transparent: true, alphaTest: 0.01, depthWrite: false
   });
   scene.add(new THREE.Points(shardGeo, shardMat));
