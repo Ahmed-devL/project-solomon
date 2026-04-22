@@ -15,6 +15,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x020108, 1);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -36,7 +37,7 @@ const camera = new THREE.PerspectiveCamera(
   3000
 );
 camera.position.set(0, 85, 320);
-camera.lookAt(0, 20, 0);
+camera.lookAt(0, 0, 0);
 
 // ─── PASSIVE PARALLAX ────────────────────────────────────────
 const mouseNorm = { x: 0, y: 0 };

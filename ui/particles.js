@@ -28,10 +28,10 @@ starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
 
 const starMat = new THREE.PointsMaterial({
   color: 0xC8D4E8,
-  size: 0.9,
+  size: 1.8,
   sizeAttenuation: true,
   transparent: true,
-  opacity: 0.75
+  opacity: 0.9
 });
 
 const starField = new THREE.Points(starGeo, starMat);
@@ -125,10 +125,10 @@ dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3
 
 const dustMat = new THREE.PointsMaterial({
   color: 0x8A7A5A,
-  size: 0.4,
+  size: 0.8,
   sizeAttenuation: true,
   transparent: true,
-  opacity: 0.35
+  opacity: 0.6
 });
 
 const dustField = new THREE.Points(dustGeometry, dustMat);
