@@ -240,7 +240,7 @@
   var hcCtx = hcCanvas.getContext('2d');
   hcCtx.clearRect(0, 0, 32, 32);
   hcCtx.strokeStyle = 'white';
-  hcCtx.lineWidth = 2;
+  hcCtx.lineWidth = 4;
   hcCtx.beginPath();
   hcCtx.arc(16, 16, 10, 0, Math.PI * 2);
   hcCtx.stroke();
@@ -271,7 +271,7 @@
   shardGeo.setAttribute('position', new THREE.BufferAttribute(shardPos, 3));
   shardGeo.setAttribute('color',    new THREE.BufferAttribute(shardCols, 3));
   var shardMat = new THREE.PointsMaterial({
-    map: hollowCircleTexture, vertexColors: true, size: 8, sizeAttenuation: true,
+    map: hollowCircleTexture, vertexColors: true, size: 35, sizeAttenuation: true,
     transparent: true, alphaTest: 0.01, depthWrite: false
   });
   scene.add(new THREE.Points(shardGeo, shardMat));
