@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
-import { RoomEnvironment } from 'https://unpkg.com/three@0.128.0/examples/jsm/environments/RoomEnvironment.js';
+
 
 // ═══════════════════════════════════════════════════════════════
 // main.js — SCENE FOUNDATION (PROJECT SOLOMON · Phase 1)
@@ -26,13 +26,7 @@ const scene = new THREE.Scene();
 scene.background = null; // void — CSS handles #020108
 scene.fog = new THREE.FogExp2(0x020108, 0.0015);
 
-// ─── ENVIRONMENT MAP ─────────────────────────────────────────
-const pmrem = new THREE.PMREMGenerator(renderer);
-pmrem.compileEquirectangularShader();
-const envMap = pmrem.fromScene(new RoomEnvironment()).texture;
-scene.environment = envMap;
-scene.background = null; // re-assert after env injection
-pmrem.dispose();
+
 
 // ─── CAMERA ──────────────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(
@@ -41,8 +35,8 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   3000
 );
-camera.position.set(0, 40, 180);
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 85, 320);
+camera.lookAt(0, 20, 0);
 
 // ─── PASSIVE PARALLAX ────────────────────────────────────────
 const mouseNorm = { x: 0, y: 0 };
@@ -71,8 +65,8 @@ palaceRight.position.set(200, 80, -160);
 scene.add(palaceRight);
 
 // Inner warm gold
-const innerWarm = new THREE.PointLight(0xC9A84C, 1.2);
-innerWarm.position.set(0, 60, -80);
+const innerWarm = new THREE.PointLight(0xC9A84C, 3.5);
+innerWarm.position.set(0, 40, -60);
 scene.add(innerWarm);
 
 // God-ray spotlights
