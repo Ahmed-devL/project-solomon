@@ -262,8 +262,7 @@
       sinOff: Math.random()*Math.PI*2, sinFreq: 0.005+Math.random()*0.01
     });
 
-    var op = 0.1 + Math.random() * 0.2;
-    shardCols[i*3] = op; shardCols[i*3+1] = op; shardCols[i*3+2] = op;
+    shardCols[i*3] = 1.0; shardCols[i*3+1] = 1.0; shardCols[i*3+2] = 1.0;
   }
 
   var shardGeo = new THREE.BufferGeometry();
