@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 import { RoomEnvironment } from 'https://unpkg.com/three@0.128.0/examples/jsm/environments/RoomEnvironment.js';
+import './background.js';
 
 // ═══════════════════════════════════════════════════════════════
 // main.js — SCENE FOUNDATION (PROJECT SOLOMON · Phase 1)
@@ -141,8 +142,3 @@ window.addEventListener('resize', () => {
 
 // ─── EXPORTS ─────────────────────────────────────────────────
 export { scene, sceneGroup, camera, renderer, registerFrameCallback, coreLightRef };
-
-// ─── LOAD PHASE MODULES ─────────────────────────────────────
-// Dynamic import ensures main.js exports are fully initialized
-// before background.js accesses them (avoids circular TDZ).
-import('./background.js');
