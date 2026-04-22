@@ -1,3 +1,6 @@
+import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
+import { RoomEnvironment } from 'https://unpkg.com/three@0.128.0/examples/jsm/environments/RoomEnvironment.js';
+
 // ═══════════════════════════════════════════════════════════════
 // main.js — SCENE FOUNDATION (PROJECT SOLOMON · Phase 1)
 // Single source of truth: renderer, scene, camera, core loop
@@ -24,20 +27,12 @@ scene.background = null; // void — CSS handles #020108
 scene.fog = new THREE.FogExp2(0x020108, 0.0015);
 
 // ─── ENVIRONMENT MAP ─────────────────────────────────────────
-// Dynamic import for resilience (RoomEnvironment may not exist in all r128 builds)
-try {
-  const { RoomEnvironment } = await import(
-    'https://unpkg.com/three@0.128.0/examples/jsm/environments/RoomEnvironment.js'
-  );
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  pmrem.compileEquirectangularShader();
-  const envMap = pmrem.fromScene(new RoomEnvironment()).texture;
-  scene.environment = envMap;
-  scene.background = null; // re-assert after env injection
-  pmrem.dispose();
-} catch (_) {
-  // Graceful fallback — scene renders without env reflections
-}
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+const envMap = pmrem.fromScene(new RoomEnvironment()).texture;
+scene.environment = envMap;
+scene.background = null; // re-assert after env injection
+pmrem.dispose();
 
 // ─── CAMERA ──────────────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(
