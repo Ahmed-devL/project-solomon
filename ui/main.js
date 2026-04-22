@@ -27,7 +27,7 @@ scene.fog = new THREE.FogExp2(0x020108, 0.0015);
 // Dynamic import for resilience (RoomEnvironment may not exist in all r128 builds)
 try {
   const { RoomEnvironment } = await import(
-    'https://unpkg.com/three@0.136.0/examples/jsm/environments/RoomEnvironment.js'
+    'https://unpkg.com/three@0.128.0/examples/jsm/environments/RoomEnvironment.js'
   );
   const pmrem = new THREE.PMREMGenerator(renderer);
   pmrem.compileEquirectangularShader();
