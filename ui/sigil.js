@@ -246,11 +246,11 @@ for (let i = 0; i < 3; i++) {
 // COMPONENT 5 — CORE LIGHT SYSTEM
 // ═════════════════════════════════════════════════════════════
 
-const forgeLight = new THREE.PointLight(0xF0A030, 5.0, 350, 1.6);
+const forgeLight = new THREE.PointLight(0xF0A030, 8.0, 600, 1.6);
 forgeLight.position.set(0, 0, 0);
 sigilGroup.add(forgeLight);
 
-const coronaLight = new THREE.PointLight(0xC9A84C, 2.5, 200, 2.0);
+const coronaLight = new THREE.PointLight(0xC9A84C, 4.0, 400, 2.0);
 coronaLight.position.set(0, 8, 0);
 sigilGroup.add(coronaLight);
 
@@ -282,13 +282,13 @@ function createBloomTexture() {
 const bloomSpriteMat = new THREE.SpriteMaterial({
   map: createBloomTexture(),
   transparent: true,
-  opacity: 0.22,
+  opacity: 0.45,
   blending: THREE.AdditiveBlending,
   depthWrite: false
 });
 
 const bloomSprite = new THREE.Sprite(bloomSpriteMat);
-bloomSprite.scale.set(42, 42, 1);
+bloomSprite.scale.set(80, 80, 1);
 sigilGroup.add(bloomSprite);
 
 // ═════════════════════════════════════════════════════════════
@@ -319,8 +319,8 @@ registerFrameCallback((elapsed, delta) => {
   glyphPlanes[2].rotation.z += 0.0004;
 
   // Core light breathing
-  forgeLight.intensity = 4.5 + Math.sin(elapsed * 0.9) * 1.2;
-  coronaLight.intensity = 2.0 + Math.sin(elapsed * 1.3 + 1.0) * 0.8;
+  forgeLight.intensity = 7.0 + Math.sin(elapsed * 0.9) * 2.0;
+  coronaLight.intensity = 3.5 + Math.sin(elapsed * 1.3 + 1.0) * 1.0;
 });
 
 // ═════════════════════════════════════════════════════════════
