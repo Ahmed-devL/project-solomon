@@ -136,3 +136,9 @@ window.addEventListener('resize', () => {
 
 // ─── EXPORTS ─────────────────────────────────────────────────
 export { scene, sceneGroup, camera, renderer, registerFrameCallback, coreLightRef };
+
+// ─── DEBUG GLOBAL ────────────────────────────────────────────
+window.__solomon = { scene, sceneGroup, camera, renderer };
+
+// ─── SUMMON SEQUENCE (async — fires after all modules ready) ─
+import('./summon.js').then(m => m.runSummonSequence());
