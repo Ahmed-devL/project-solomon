@@ -233,40 +233,48 @@
   });
   scene.add(new THREE.Points(dustGeo, dustMat));
 
-  // ─── TYPE B: DEBRIS SHARDS (40 line segments) ───────────────
+  // ─── TYPE B: HOLLOW CIRCLES (40 particles) ──────────────────
+  // Build 32x32 hollow-circle texture
+  var hcCanvas = document.createElement('canvas');
+  hcCanvas.width = 32; hcCanvas.height = 32;
+  var hcCtx = hcCanvas.getContext('2d');
+  hcCtx.clearRect(0, 0, 32, 32);
+  hcCtx.strokeStyle = 'white';
+  hcCtx.lineWidth = 2;
+  hcCtx.beginPath();
+  hcCtx.arc(16, 16, 10, 0, Math.PI * 2);
+  hcCtx.stroke();
+  var hollowCircleTexture = new THREE.CanvasTexture(hcCanvas);
+
   var SHARD_N = 40;
-  var shardVerts = new Float32Array(SHARD_N * 6); // 2 verts per shard
-  var shardCols  = new Float32Array(SHARD_N * 6);
-  var shardData  = [];
+  var shardPos  = new Float32Array(SHARD_N * 3);
+  var shardCols = new Float32Array(SHARD_N * 3);
+  var shardData = [];
 
   for (var i = 0; i < SHARD_N; i++) {
     var x = (Math.random()-0.5)*BX*2, y = (Math.random()-0.5)*BY*2, z = -50+Math.random()*100;
-    var angle = Math.random() * Math.PI * 2;
-    var halfLen = 2 + Math.random() * 5;
+    shardPos[i*3] = x; shardPos[i*3+1] = y; shardPos[i*3+2] = z;
+
     var bvx = (Math.random()*0.08+0.04)*(Math.random()<0.5?1:-1);
     var bvy = (Math.random()*0.06+0.02)*(Math.random()<0.5?1:-1);
-    var rotSpd = (0.008+Math.random()*0.017)*(Math.random()<0.5?1:-1);
-
     shardData.push({
-      x:x, y:y, z:z, angle:angle, halfLen:halfLen,
-      vx:bvx, vy:bvy, baseVx:bvx, baseVy:bvy, rotSpeed:rotSpd,
+      vx:bvx, vy:bvy, baseVx:bvx, baseVy:bvy,
       sinOff: Math.random()*Math.PI*2, sinFreq: 0.005+Math.random()*0.01
     });
 
     var op = 0.18 + Math.random() * 0.27;
     var col = particleColor(op);
-    for (var v = 0; v < 2; v++) {
-      shardCols[i*6+v*3]   = col[0];
-      shardCols[i*6+v*3+1] = col[1];
-      shardCols[i*6+v*3+2] = col[2];
-    }
+    shardCols[i*3] = col[0]; shardCols[i*3+1] = col[1]; shardCols[i*3+2] = col[2];
   }
 
   var shardGeo = new THREE.BufferGeometry();
-  shardGeo.setAttribute('position', new THREE.BufferAttribute(shardVerts, 3));
+  shardGeo.setAttribute('position', new THREE.BufferAttribute(shardPos, 3));
   shardGeo.setAttribute('color',    new THREE.BufferAttribute(shardCols, 3));
-  var shardMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 1.0, depthWrite: false });
-  scene.add(new THREE.LineSegments(shardGeo, shardMat));
+  var shardMat = new THREE.PointsMaterial({
+    map: hollowCircleTexture, vertexColors: true, size: 8, sizeAttenuation: true,
+    transparent: true, alphaTest: 0.01, depthWrite: false
+  });
+  scene.add(new THREE.Points(shardGeo, shardMat));
 
   // ─── TYPE C: MICRO-CRYSTALS (30 sparkle points) ─────────────
   var CRYSTAL_N = 30;
@@ -356,18 +364,13 @@
     }
     dustGeo.attributes.position.needsUpdate = true;
 
-    // Type B — Shards
+    // Type B — Hollow circles
     for (i = 0; i < SHARD_N; i++) {
       d = shardData[i];
-      cursorPush(d.x, d.y, d);
-      d.x += d.vx;
-      d.y += d.vy + Math.sin(p1Time * d.sinFreq + d.sinOff) * 0.03;
-      d.angle += d.rotSpeed;
-      if (d.x >  BX) d.x = -BX; if (d.x < -BX) d.x =  BX;
-      if (d.y >  BY) d.y = -BY; if (d.y < -BY) d.y =  BY;
-      var cx = Math.cos(d.angle)*d.halfLen, cy = Math.sin(d.angle)*d.halfLen;
-      shardVerts[i*6]   = d.x - cx; shardVerts[i*6+1] = d.y - cy; shardVerts[i*6+2] = d.z;
-      shardVerts[i*6+3] = d.x + cx; shardVerts[i*6+4] = d.y + cy; shardVerts[i*6+5] = d.z;
+      cursorPush(shardPos[i*3], shardPos[i*3+1], d);
+      shardPos[i*3]   += d.vx;
+      shardPos[i*3+1] += d.vy + Math.sin(p1Time * d.sinFreq + d.sinOff) * 0.03;
+      wrap(shardPos, i*3);
     }
     shardGeo.attributes.position.needsUpdate = true;
 
