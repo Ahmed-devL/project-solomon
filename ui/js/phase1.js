@@ -394,8 +394,15 @@
     nebulaMaterial.uniforms.uTime.value = p1Time;
     updateStars();
     updateParticles();
-    renderer.render(scene, camera);
+    if (window.solomonPhase1Active !== false) {
+      renderer.render(scene, camera);
+    }
   }
+
+  window.solomonUpdateStars     = updateStars;
+  window.solomonUpdateParticles = updateParticles;
+  window.solomonNebulaMaterial  = nebulaMaterial;
+  window.solomonPhase1Active    = true;
 
   phase1Loop();
 
@@ -403,6 +410,5 @@
   window.solomonPhase1RAFId = function () { return rafId; };
   window.solomonCancelPhase1 = function () { cancelAnimationFrame(rafId); };
   window.solomonP1Time = function () { return p1Time; };
-  window.solomonNebulaMaterial = nebulaMaterial;
 
 })();
