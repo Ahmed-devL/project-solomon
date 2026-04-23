@@ -2,6 +2,9 @@
    SOLOMON — Phase 3: The Ten Rings of Solomon
    ═══════════════════════════════════════════════════════════════ */
 
+(function () {
+'use strict';
+
 // 1. DEPENDENCY GUARD
 if (
   !window.solomonRenderer ||
@@ -408,3 +411,5 @@ window.solomonRings        = rings;
 window.solomonP3Time       = () => p3Time;
 
 console.log('[Solomon Phase 3] All 10 rings initialized. Scene complete.');
+
+})();
