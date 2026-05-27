@@ -1,0 +1,24 @@
+{
+  "name": "solomon-windows",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/221bAhmed/project-solomon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/221bAhmed/project-solomon/issues"
+  },
+  "homepage": "https://github.com/221bAhmed/project-solomon#readme",
+  "devDependencies": {
+    "electron": "^42.3.0"
+  }
+}
