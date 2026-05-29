@@ -866,6 +866,18 @@ function onMouseClick(e) {
   const clickedIdx = target.ringIndex;
   const clickedRing = rings[clickedIdx];
   if (clickedRing.isTraveling) return;
+
+  // Ars Almadel (index 0) — warp toggle takes priority over all other logic.
+  // Pass the event so warp.js can detect clicks that originated from the
+  // invocation UI and ignore them (prevents textarea clicks triggering warp-in).
+  if (clickedIdx === 0 && typeof window.solomonHandleAlmadelClick === 'function') {
+    window.solomonHandleAlmadelClick(e);
+    return;
+  }
+
+  // All other rings are locked out while warp mode is active.
+  if (window.solomonWarpActive) return;
+
   if (clickedRing.isAtSigil) {
     returnRingToOrigin(clickedIdx);
   } else {
@@ -921,9 +933,11 @@ composer.render = function() {
 };
 
 // 18. GLOBALS
-window.solomonPhase3Update = phase3Update;
-window.solomonRings = rings;
-window.solomonP3Time = () => p3Time;
+window.solomonPhase3Update       = phase3Update;
+window.solomonRings               = rings;
+window.solomonP3Time              = () => p3Time;
+window.solomonSendRingToSigil    = sendRingToSigil;
+window.solomonReturnRingToOrigin = returnRingToOrigin;
 
 console.log('[Solomon Phase 3] Rewrite complete. 10 rings active.');
 })();
