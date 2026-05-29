@@ -48,8 +48,17 @@
 
   <!-- PHASES — order matters, do not change -->
   <script src="js/phase1.js"></script>
+  <script>
+    // Prevent flash of uninitialized sigil/rings before boot.js runs
+    const _origComposerRender = THREE.EffectComposer.prototype.render;
+    THREE.EffectComposer.prototype.render = function(deltaTime) {
+      if (typeof window.solomonBootComplete === 'undefined') return;
+      _origComposerRender.call(this, deltaTime);
+    };
+  </script>
   <script src="js/phase2.js"></script>
   <script src="js/phase3.js"></script>
+  <script src="js/boot.js"></script>
   <script src="js/warp.js"></script>
 
 </body>
