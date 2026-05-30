@@ -207,3 +207,8 @@ marimo/_lsp/
 __marimo__/
 node_modules/
 SOLOMON_CONTEXT.md
+venv/
+__pycache__/
+backend/__pycache__/
+*.pyc
+.env

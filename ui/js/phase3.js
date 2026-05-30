@@ -839,6 +839,25 @@ function sendRingToSigil(idx) {
   });
 }
 
+// 13a. SEND RING TO SIGIL + NOTIFY BACKEND OF PERSONALITY CHANGE
+function sendRingToSigilAndNotify(idx) {
+  sendRingToSigil(idx);
+
+  // Index 0 = Ars Almadel — warp ring, not a personality switch
+  if (idx === 0) return;
+
+  const ringIdMap = window.solomonRingIdMap;
+  if (!ringIdMap || !ringIdMap[idx]) return;
+
+  const ringId = ringIdMap[idx];
+
+  // Update active ring so next user_message uses this personality
+  if (window.solomonWS) {
+    window.solomonWS.activeRingId = ringId;
+    window.solomonWS.send('ring_selected', { ring_id: ringId });
+  }
+}
+
 // 14. RETURN RING TO ORIGIN
 function returnRingToOrigin(idx, onReturnComplete) {
   const r = rings[idx];
@@ -883,9 +902,9 @@ function onMouseClick(e) {
   } else {
     if (ringAtSigilIndex !== -1 && ringAtSigilIndex !== clickedIdx) {
       const prevIdx = ringAtSigilIndex;
-      returnRingToOrigin(prevIdx, () => { setTimeout(() => sendRingToSigil(clickedIdx), 400); });
+      returnRingToOrigin(prevIdx, () => { setTimeout(() => sendRingToSigilAndNotify(clickedIdx), 400); });
     } else {
-      sendRingToSigil(clickedIdx);
+      sendRingToSigilAndNotify(clickedIdx);
     }
   }
 }

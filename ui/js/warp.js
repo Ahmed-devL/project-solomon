@@ -50,10 +50,12 @@
   // ── 5. DOM ELEMENT REFS ───────────────────────────────────────────────
   // These are null until first warp-out and nulled again after warp-in
   // destruction. Never recreated after destroy if warpStyleEl already exists.
-  var inputContainer = null;
-  var glowBackdrop   = null;
-  var textArea       = null;
-  var warpStyleEl    = null;  // injected once, lives for the session
+  var inputContainer    = null;
+  var glowBackdrop      = null;
+  var textArea          = null;
+  var warpStyleEl       = null;  // injected once, lives for the session
+  var responseHistory   = null;  // scrollable conversation history div
+  var currentAssistDiv  = null;  // the assistant response div being streamed into
 
   // ── 6. CSS INJECTION (idempotent — runs once per session) ─────────────
   function injectStyles() {
@@ -84,18 +86,76 @@
       '  left: 50%;',
       '  width: 480px;',
       '  min-height: 56px;',
+      '  max-height: 500px;',
       '  background: rgba(30, 28, 40, 0.72);',
       '  border: 1px solid rgba(180, 140, 100, 0.25);',
       '  border-radius: 14px;',
       '  backdrop-filter: blur(12px);',
       '  -webkit-backdrop-filter: blur(12px);',
-      '  padding: 16px 20px;',
+      '  padding: 16px 20px 14px 20px;',
       '  font-family: \'Cormorant Garamond\', serif;',
       '  font-size: 16px;',
       '  color: rgba(230, 220, 210, 0.9);',
       '  z-index: 9;',
       '  pointer-events: auto;',
       '  box-sizing: border-box;',
+      '  display: flex;',
+      '  flex-direction: column;',
+      '  gap: 0;',
+      '}',
+      '',
+      /* ── Scrollable response history ── */
+      '#solomon-response-history {',
+      '  max-height: 280px;',
+      '  overflow-y: auto;',
+      '  scrollbar-width: none;',
+      '  -ms-overflow-style: none;',
+      '  margin-bottom: 10px;',
+      '  display: flex;',
+      '  flex-direction: column;',
+      '  gap: 20px;',
+      '}',
+      '#solomon-response-history::-webkit-scrollbar { display: none; }',
+      '',
+      /* ── Individual message rows ── */
+      '.sol-msg-user {',
+      '  text-align: right;',
+      '  font-size: 14px;',
+      '  line-height: 1.5;',
+      '  color: rgba(180, 160, 140, 0.55);',
+      '  opacity: 0;',
+      '  transition: opacity 0.3s ease;',
+      '}',
+      '.sol-msg-user.visible { opacity: 1; }',
+      '',
+      '.sol-msg-assistant {',
+      '  text-align: left;',
+      '  font-size: 15px;',
+      '  line-height: 1.7;',
+      '  color: rgba(230, 220, 210, 0.92);',
+      '  opacity: 0;',
+      '  transition: opacity 0.3s ease;',
+      '  white-space: pre-wrap;',
+      '}',
+      '.sol-msg-assistant.visible { opacity: 1; }',
+      '',
+      '.sol-msg-error {',
+      '  text-align: left;',
+      '  font-size: 14px;',
+      '  line-height: 1.5;',
+      '  color: rgba(200, 80, 80, 0.7);',
+      '  opacity: 0;',
+      '  transition: opacity 0.3s ease;',
+      '}',
+      '.sol-msg-error.visible { opacity: 1; }',
+      '',
+      /* ── Bottom textarea row ── */
+      '#solomon-textarea-row {',
+      '  display: flex;',
+      '  align-items: flex-end;',
+      '  gap: 8px;',
+      '  border-top: 1px solid rgba(180, 140, 100, 0.12);',
+      '  padding-top: 10px;',
       '}',
       '',
       /* ── Textarea inside the panel ── */
@@ -105,19 +165,25 @@
       '  outline: none;',
       '  resize: none;',
       '  overflow: hidden;',
-      '  width: 100%;',
+      '  flex: 1;',
       '  min-height: 24px;',
       '  display: block;',
       '  font-family: \'Cormorant Garamond\', serif;',
       '  font-size: 16px;',
       '  color: rgba(230, 220, 210, 0.9);',
-      '  field-sizing: content;',  /* modern auto-expand */
+      '  field-sizing: content;',
       '  caret-color: rgba(201, 147, 58, 0.8);',
       '  line-height: 1.5;',
+      '  transition: opacity 0.2s ease;',
       '}',
       '',
       '#solomon-input-container textarea::placeholder {',
       '  color: rgba(180, 160, 140, 0.4);',
+      '}',
+      '',
+      '#solomon-input-container textarea:disabled {',
+      '  opacity: 0.35;',
+      '  pointer-events: none;',
       '}',
     ].join('\n');
     document.head.appendChild(warpStyleEl);
@@ -139,11 +205,23 @@
     inputContainer.id = 'solomon-input-container';
     document.body.appendChild(inputContainer);
 
+    // ── Response history area (scrollable, invisible scrollbar) ──────────
+    responseHistory    = document.createElement('div');
+    responseHistory.id = 'solomon-response-history';
+    inputContainer.appendChild(responseHistory);
+
+    // ── Bottom textarea row ───────────────────────────────────────────────
+    var textareaRow    = document.createElement('div');
+    textareaRow.id     = 'solomon-textarea-row';
+    inputContainer.appendChild(textareaRow);
+
     // Textarea
     textArea             = document.createElement('textarea');
+    textArea.id          = 'solomon-textarea';
     textArea.placeholder = 'speak your invocation\u2026';
     textArea.rows        = 1;
     textArea.spellcheck  = false;
+    textareaRow.appendChild(textArea);
 
     // Auto-expand fallback for browsers that do not support field-sizing: content
     textArea.addEventListener('input', function () {
@@ -151,12 +229,13 @@
       this.style.height = this.scrollHeight + 'px';
     });
 
-    // Enter key: inert — no submit handler yet
+    // ── Enter = submit, Shift+Enter = newline ─────────────────────────────
     textArea.addEventListener('keydown', function (e) {
-      // Intentionally empty — submission is a future feature
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitMessage();
+      }
     });
-
-    inputContainer.appendChild(textArea);
 
     // Set collapsed initial GSAP state (hidden, scaleY=0).
     // xPercent / yPercent own the centering transform so scaleY can run cleanly.
@@ -236,6 +315,12 @@
   // ── 10. DESTROY INVOCATION UI (called at end of warp-in sequence) ─────
   // Removes DOM nodes entirely to clear any stale event listeners.
   function destroyInvocationUI() {
+    // Detach WS hooks so stray events don't reference detached DOM nodes
+    if (window.solomonWS) {
+      window.solomonWS.onToken     = function () {};
+      window.solomonWS.onStatus    = function () {};
+      window.solomonWS.onConnected = function () {};
+    }
     if (glowBackdrop) {
       gsap.killTweensOf(glowBackdrop);
       if (glowBackdrop.parentNode) glowBackdrop.parentNode.removeChild(glowBackdrop);
@@ -244,9 +329,11 @@
       gsap.killTweensOf(inputContainer);
       if (inputContainer.parentNode) inputContainer.parentNode.removeChild(inputContainer);
     }
-    glowBackdrop   = null;
-    inputContainer = null;
-    textArea       = null;
+    glowBackdrop     = null;
+    inputContainer   = null;
+    textArea         = null;
+    responseHistory  = null;
+    currentAssistDiv = null;
   }
 
   // ── 11. WARP OUT — inner function (pre-flight checks happen in warpOut) ─
@@ -338,6 +425,7 @@
               warpLateralSpin = true;
               createInvocationUI();
               animateInUI();
+              wireWSHooks();   // Attach live WebSocket callbacks to the new UI
 
               window.solomonWarpActive = true;
               isWarping               = false;
@@ -460,13 +548,147 @@
     });
   }
 
+  // ── 11b. MESSAGE SUBMISSION ───────────────────────────────────────────
+  function submitMessage() {
+    if (!textArea) return;
+    var text = textArea.value.trim();
+    if (!text) return;
+    if (!window.solomonWS || !window.solomonWS.isConnected) return;
+    if (window.solomonWS.isGenerating) return;
+
+    // Clear textarea
+    textArea.value       = '';
+    textArea.style.height = 'auto';
+
+    // Append user message row
+    appendUserMessage(text);
+
+    // Prepare empty assistant div — tokens will fill it
+    currentAssistDiv = appendAssistantMessage('');
+
+    // Send to backend
+    window.solomonWS.send('user_message', {
+      content: text,
+      ring_id: window.solomonWS.activeRingId,
+    });
+  }
+
+  // ── 11c. HISTORY APPEND HELPERS ───────────────────────────────────────
+  function appendUserMessage(text) {
+    if (!responseHistory) return null;
+    var el = document.createElement('div');
+    el.className    = 'sol-msg-user';
+    el.textContent  = text;
+    responseHistory.appendChild(el);
+    // Trigger fade-in on next tick
+    requestAnimationFrame(function () { el.classList.add('visible'); });
+    scrollHistoryToBottom();
+    return el;
+  }
+
+  function appendAssistantMessage(text) {
+    if (!responseHistory) return null;
+    var el = document.createElement('div');
+    el.className    = 'sol-msg-assistant';
+    el.textContent  = text;
+    responseHistory.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('visible'); });
+    scrollHistoryToBottom();
+    return el;
+  }
+
+  function appendErrorMessage(text) {
+    if (!responseHistory) return null;
+    var el = document.createElement('div');
+    el.className    = 'sol-msg-error';
+    el.textContent  = text;
+    responseHistory.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('visible'); });
+    scrollHistoryToBottom();
+    return el;
+  }
+
+  function scrollHistoryToBottom() {
+    if (responseHistory) {
+      responseHistory.scrollTop = responseHistory.scrollHeight;
+    }
+  }
+
+  // ── 11d. WIRE WS HOOKS (called when invocation UI is live) ────────────
+  function wireWSHooks() {
+    if (!window.solomonWS) return;
+
+    // onConnected — called if connection opens while UI is already live
+    window.solomonWS.onConnected = function () {
+      // Nothing to do: status will arrive as 'idle'
+    };
+
+    // onStatus — gate textarea, handle offline
+    window.solomonWS.onStatus = function (state) {
+      if (!textArea) return;
+
+      if (state === 'ollama_offline') {
+        textArea.disabled = true;
+        appendErrorMessage(
+          'ollama is not reachable. start ollama in wsl and restart solomon.'
+        );
+        return;
+      }
+
+      if (state === 'thinking') {
+        textArea.disabled = true;
+      } else {
+        // idle, error, or anything else — re-enable
+        textArea.disabled = false;
+        if (textArea && document.activeElement !== textArea) textArea.focus();
+      }
+    };
+
+    // onToken — stream each token into the current assistant div
+    window.solomonWS.onToken = function (token, done) {
+      if (done) {
+        // Generation complete — nothing extra needed; status:idle re-enables textarea
+        return;
+      }
+      if (!currentAssistDiv) {
+        // Orphaned token (no user message was sent from this session yet)
+        currentAssistDiv = appendAssistantMessage('');
+      }
+      if (token) {
+        currentAssistDiv.textContent += token;
+        scrollHistoryToBottom();
+      }
+    };
+
+    // Show offline message if WS was already offline before the UI opened
+    if (!window.solomonWS.isConnected) {
+      appendErrorMessage(
+        'ollama is not reachable. start ollama in wsl and restart solomon.'
+      );
+      if (textArea) textArea.disabled = true;
+    }
+  }
+
   // ── 14. PER-FRAME WARP UPDATE ─────────────────────────────────────────
   // Chained into the existing solomonPhase3Update via the Composer Patch.
   // No new requestAnimationFrame call.
+  // Uses a lerp-smoothed speed variable for organic acceleration/deceleration.
+  var _warpSpinSpeed = 0.005;  // current Y-axis spin speed (lerped)
+  var _WARP_IDLE_SPEED = 0.005;
+  var _WARP_GEN_SPEED  = 0.04;
+
   function warpUpdate() {
     if (!warpLateralSpin) return;
-    // Slow continuous Y-axis lateral spin while in invocation space
-    rings[0].group.rotation.y += 0.005;
+
+    // Target speed depends on whether generation is active
+    var targetSpeed = (window.solomonWS && window.solomonWS.isGenerating)
+      ? _WARP_GEN_SPEED
+      : _WARP_IDLE_SPEED;
+
+    // Lerp toward target for organic feel
+    _warpSpinSpeed += (targetSpeed - _warpSpinSpeed) * 0.08;
+
+    rings[0].group.rotation.y += _warpSpinSpeed;
   }
 
   // ── 15. EXTEND PHASE 3 UPDATE CHAIN ──────────────────────────────────
